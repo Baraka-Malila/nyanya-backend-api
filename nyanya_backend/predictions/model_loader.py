@@ -1,5 +1,5 @@
 """
-Tomato Model Loader for Colab-Generated Files
+Tomato Model Loader - Heroku-Ready
 """
 
 from pathlib import Path
@@ -7,6 +7,7 @@ import pickle
 import numpy as np
 import warnings
 import pandas as pd
+import traceback
 
 # Suppress sklearn warnings for cleaner output
 warnings.filterwarnings('ignore', category=UserWarning, module='sklearn')
@@ -22,10 +23,8 @@ class TomatoModelLoader:
         self.metadata = None
         self.is_trained = False
 
-        # Base repo directory (two levels up from predictions/)
-        BASE_DIR = Path(__file__).resolve().parent.parent
-        self.models_dir = BASE_DIR / 'models'
-
+        # Absolute Heroku path for models
+        self.models_dir = Path('/app/models')
         self.model_path = self.models_dir / 'rf_model.pkl'
         self.cat_encoders_path = self.models_dir / 'categorical_encoders.pkl'
         self.target_encoder_path = self.models_dir / 'target_encoder.pkl'
@@ -42,17 +41,26 @@ class TomatoModelLoader:
                 self.target_encoder_path,
                 self.metadata_path,
             ]
+
+            print("Checking model files:")
+            for f in required_files:
+                print(f"{f} exists? {f.exists()}")
+
             if not all(f.exists() for f in required_files):
-                print("Model files not found. Train model in Colab first.")
+                print("Model files not found. Make sure they are in /app/models")
                 self.is_trained = False
                 return False
 
+            # Load model
             with open(self.model_path, 'rb') as f:
                 self.model = pickle.load(f)
+            # Load categorical encoders
             with open(self.cat_encoders_path, 'rb') as f:
                 self.categorical_encoders = pickle.load(f)
+            # Load target encoder
             with open(self.target_encoder_path, 'rb') as f:
                 self.target_encoder = pickle.load(f)
+            # Load metadata
             with open(self.metadata_path, 'rb') as f:
                 self.metadata = pickle.load(f)
 
@@ -63,7 +71,7 @@ class TomatoModelLoader:
             return True
 
         except Exception as e:
-            print(f"Error loading model: {e}")
+            print("Error loading model:", traceback.format_exc())
             self.is_trained = False
             return False
 
@@ -89,7 +97,7 @@ class TomatoModelLoader:
     ):
         """Encode input features for prediction."""
         if not self.is_trained:
-            raise ValueError("Model not loaded. Train model in Colab first.")
+            raise ValueError("Model not loaded.")
 
         try:
             last_week_encoded = self.categorical_encoders['Last_Week_Demand'].transform([last_week_demand])[0]
@@ -112,7 +120,7 @@ class TomatoModelLoader:
             return features
 
         except Exception as e:
-            raise ValueError(f"Feature encoding failed: {e}")
+            raise ValueError(f"Feature encoding failed: {traceback.format_exc()}")
 
     def predict(
         self,
@@ -127,7 +135,7 @@ class TomatoModelLoader:
     ):
         """Make demand prediction using the trained model."""
         if not self.is_trained:
-            raise ValueError("Model not loaded. Train model in Colab first.")
+            raise ValueError("Model not loaded.")
 
         try:
             features = self.encode_features(
@@ -143,7 +151,7 @@ class TomatoModelLoader:
             return prediction, confidence
 
         except Exception as e:
-            raise ValueError(f"Prediction failed: {e}")
+            raise ValueError(f"Prediction failed: {traceback.format_exc()}")
 
     def get_model_info(self):
         """Get information about the loaded model."""
