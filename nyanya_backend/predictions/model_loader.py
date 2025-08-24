@@ -21,7 +21,9 @@ class TomatoModelLoader:
         self.metadata = None
         self.is_trained = False
         
-        self.models_dir = '/home/cyberpunk/LOCAL-MARKET-MBEYA-NYANYA/models'
+        # Use relative path that works both locally and on Heroku
+        project_root = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+        self.models_dir = os.path.join(project_root, 'models')
         self.model_path = os.path.join(self.models_dir, 'rf_model.pkl')
         self.cat_encoders_path = os.path.join(self.models_dir, 'categorical_encoders.pkl')
         self.target_encoder_path = os.path.join(self.models_dir, 'target_encoder.pkl')
