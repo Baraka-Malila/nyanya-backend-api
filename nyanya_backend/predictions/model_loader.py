@@ -21,29 +21,13 @@ class TomatoModelLoader:
         self.metadata = None
         self.is_trained = False
         
-    def load_model(self):
-        """
-        Load the trained model and encoders from pickle files.
+        self.models_dir = '/app/models'
+        self.model_path = os.path.join(self.models_dir, 'rf_model.pkl')
+        self.cat_encoders_path = os.path.join(self.models_dir, 'categorical_encoders.pkl')
+        self.target_encoder_path = os.path.join(self.models_dir, 'target_encoder.pkl')
+        self.metadata_path = os.path.join(self.models_dir, 'metadata.pkl')
         
-        Returns:
-            bool: True if model loaded successfully, False otherwise
-        """
-        try:
-            # Debug: Print the paths being used
-            print(f"DEBUG: Looking for models at: {self.models_dir}")
-            print(f"DEBUG: Model file path: {self.model_path}")
-            print(f"DEBUG: Current working directory: {os.getcwd()}")
-            print(f"DEBUG: File __file__ path: {__file__}")
-            
-            # Check which files exist
-            required_files = [self.model_path, self.cat_encoders_path, self.target_encoder_path, self.metadata_path]
-            for file_path in required_files:
-                exists = os.path.exists(file_path)
-                print(f"DEBUG: {file_path} exists: {exists}")
-            
-            if not all(os.path.exists(path) for path in required_files):
-                print(f"Model files not found at {self.models_dir}. Train model in Google Colab first.")
-                return False
+        self.load_model()
     
     def load_model(self):
         """Load trained model and encoders from pickle files"""
